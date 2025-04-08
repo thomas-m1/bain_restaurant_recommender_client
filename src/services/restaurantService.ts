@@ -33,6 +33,12 @@ export const fetchRestaurants = async (
       if (params.sort_by)
         query.append('sort_by', params.sort_by);
 
+      if (params.good_for_meal) {
+        params.good_for_meal.forEach((meal: string) =>
+          query.append('good_for_meal', meal.toLowerCase())
+        );
+      }
+
       if (params.outdoor_seating !== undefined)
         query.append('outdoor_seating', String(params.outdoor_seating));
 

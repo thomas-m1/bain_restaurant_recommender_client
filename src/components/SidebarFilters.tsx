@@ -6,17 +6,10 @@ import {
   OutdoorSeatingFilter,
   GoodForGroupsFilter,
   DistanceFilter,
+  GoodForMealFilter,
 } from '.';
-
-type Filters = {
-  categories: string[];
-  price: string[];
-  scenario_tag: string;
-  sort_by: 'best_match' | 'highest_rated' | 'popularity' | 'distance';
-  outdoor_seating: boolean | undefined;
-  good_for_groups: boolean | undefined;
-  max_distance_km: number | undefined;
-};
+import { Filters } from '../types/filters';
+import { DEFAULT_FILTERS } from '../constants/filters';
 
 type Props = {
   filters: Filters;
@@ -55,17 +48,8 @@ const SidebarFilters: React.FC<Props> = ({ filters, setFilters }) => {
           variant="text"
           size="small"
           color="error"
-          onClick={() =>
-            setFilters({
-              categories: [],
-              price: [],
-              scenario_tag: '',
-              sort_by: 'best_match',
-              outdoor_seating: undefined,
-              good_for_groups: undefined,
-              max_distance_km: undefined,
-            })
-          }
+          onClick={() => setFilters(DEFAULT_FILTERS)}
+
           sx={{
             textTransform: 'none',
             fontSize: '0.875rem',
@@ -94,6 +78,11 @@ const SidebarFilters: React.FC<Props> = ({ filters, setFilters }) => {
       <PriceFilter
         value={filters.price}
         onChange={(val) => updateFilter('price', val)}
+      />
+      <Box mt={2} />
+      <GoodForMealFilter
+        value={filters.good_for_meal}
+        onChange={(val) => updateFilter('good_for_meal', val)}
       />
       <Box mt={2} />
 

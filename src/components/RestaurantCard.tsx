@@ -18,6 +18,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LeaveRecommendationModal from './LeaveRecommendationModal';
+import BusinessHours from './BusinessHours';
 
 interface Props {
   restaurant: Restaurant;
@@ -25,6 +26,12 @@ interface Props {
 
 export default function RestaurantCard({ restaurant }: Props) {
   const [open, setOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+
+  const suggestCount =
+    restaurant.recommendations?.filter((r) => r.suggest).length || 0;
+  const dislikeCount =
+    restaurant.recommendations?.filter((r) => !r.suggest).length || 0;
 
   return (
     <>
@@ -70,12 +77,11 @@ export default function RestaurantCard({ restaurant }: Props) {
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" ml={3}>
-              {' '}
               {restaurant.distance_from_office_km.toFixed(1)} km from office
             </Typography>
           </Box>
 
-          {/* scenario tags occasion)*/}
+          {/* Scenario Tags */}
           {restaurant.scenario_tags.length > 0 && (
             <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
               {restaurant.scenario_tags.map((tag) => (
@@ -94,7 +100,7 @@ export default function RestaurantCard({ restaurant }: Props) {
             </Stack>
           )}
 
-          {/* all the amenities */}
+          {/* other features */}
           <Box
             display="flex"
             flexWrap="wrap"
@@ -119,7 +125,7 @@ export default function RestaurantCard({ restaurant }: Props) {
             )}
           </Box>
 
-          {/* Ambience */}
+          {/* ambience */}
           {restaurant.ambience &&
             Object.keys(restaurant.ambience).length > 0 && (
               <Box mt={1}>
@@ -163,35 +169,17 @@ export default function RestaurantCard({ restaurant }: Props) {
               </Box>
             )}
 
-          {/* Phone */}
+          {/* phone */}
           {restaurant.phone && (
             <Box display="flex" alignItems="center" mt={1} gap={1}>
               <PhoneIcon sx={{ fontSize: 16 }} />
               <Typography variant="body2">{restaurant.phone}</Typography>
             </Box>
           )}
+          <BusinessHours businessHours={restaurant.business_hours} />
 
-          {/* Recommendations */}
-          {restaurant.recommendations &&
-            restaurant.recommendations.length > 0 && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" mb={0.5}>
-                  Bain Recommendations:
-                </Typography>
-                <Stack spacing={0.5}>
-                  {restaurant.recommendations.map((rec) => (
-                    <Typography key={rec.id} variant="body2">
-                      {rec.sentiment === 'suggest' ? 'LIKE' : 'DISLIKE'}{' '}
-                      {rec.user_email} — {rec.note}
-                    </Typography>
-                  ))}
-                </Stack>
-              </>
-            )}
-
-          {/* buttons for websites and review */}
-          <Stack direction="row" spacing={1} mt={2}>
+          {/* websites and review */}
+          <Stack direction="row" spacing={1} mt={2} flexWrap="wrap">
             {restaurant.website && (
               <Button
                 href={restaurant.website}
@@ -216,18 +204,68 @@ export default function RestaurantCard({ restaurant }: Props) {
                 Yelp
               </Button>
             )}
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => setOpen(true)}
-              sx={{ ml: 'auto' }}
-            >
-              Leave a Review
-            </Button>
           </Stack>
+
+          {/* feedback for the restaurant by users*/}
+          {restaurant.recommendations && (
+            <Box
+              mt={1.5}
+              display="flex"
+              alignItems="center"
+              gap={2}
+              flexWrap="wrap"
+            >
+              <Chip
+                label={`👍 ${suggestCount}`}
+                size="small"
+                color="success"
+                sx={{ fontWeight: 500 }}
+              />
+              <Chip
+                label={`👎 ${dislikeCount}`}
+                size="small"
+                color="error"
+                sx={{ fontWeight: 500 }}
+              />
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => setOpen(true)}
+                sx={{ textTransform: 'none' }}
+              >
+                Add Review
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => setShowComments((prev) => !prev)}
+                sx={{ textTransform: 'none' }}
+              >
+                {showComments ? 'Hide Comments' : 'View Comments'}
+              </Button>
+            </Box>
+          )}
+
+          {/* show comments when user clicks to expand */}
+          {showComments && (restaurant.recommendations?.length ?? 0) > 0 && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" mb={0.5}>
+                Reviews:
+              </Typography>
+              <Stack spacing={0.5}>
+                {restaurant.recommendations?.map((rec) => (
+                  <Typography key={rec.id} variant="body2">
+                    {rec.suggest ? '👍' : '👎'} {rec.user_email} — {rec.note}
+                  </Typography>
+                ))}
+              </Stack>
+            </>
+          )}
         </CardContent>
       </Card>
 
+      {/* modal for leaving review */}
       <LeaveRecommendationModal
         open={open}
         onClose={() => setOpen(false)}

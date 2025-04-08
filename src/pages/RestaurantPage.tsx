@@ -4,36 +4,37 @@ import {
   Toolbar,
   Typography,
   Container,
+  Button,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { fetchRestaurants } from '../services/restaurantService';
 import { Restaurant } from '../types/restaurant';
+import { Filters } from '../types/filters';
 import {
   RestaurantCard,
   SortByFilter,
   SelectedFiltersSummary,
   SearchButton,
-  SidebarFilters
+  SidebarFilters,
 } from '../components';
 
-const RestaurantPage = () => {
-  const [filters, setFilters] = useState({
-    categories: [] as string[],
-    price: [] as string[],
-    scenario_tag: '',
-    sort_by: 'best_match' as
-      | 'best_match'
-      | 'highest_rated'
-      | 'popularity'
-      | 'distance',
-    outdoor_seating: undefined as boolean | undefined,
-    good_for_groups: undefined as boolean | undefined,
-    max_distance_km: undefined as number | undefined,
-  });
+const initialFilters: Filters = {
+  categories: [],
+  price: [],
+  scenario_tag: '',
+  sort_by: 'best_match',
+  outdoor_seating: undefined,
+  good_for_groups: undefined,
+  max_distance_km: undefined,
+  good_for_meal: [],
+};
 
+const RestaurantPage = () => {
+  const [filters, setFilters] = useState<Filters>(initialFilters);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTriggered, setSearchTriggered] = useState(false);
+  const [searchTriggered, setSearchTriggered] = useState(true);
+  const [showSuggestedOnly, setShowSuggestedOnly] = useState(false);
 
   const handleSearch = () => {
     setSearchTriggered(true);
@@ -41,6 +42,7 @@ const RestaurantPage = () => {
 
   useEffect(() => {
     if (!searchTriggered) return;
+
     const getData = async () => {
       setLoading(true);
       try {
@@ -52,8 +54,15 @@ const RestaurantPage = () => {
         setLoading(false);
       }
     };
+
     getData();
   }, [searchTriggered, filters]);
+
+  const filteredRestaurants = showSuggestedOnly
+    ? restaurants.filter((r) =>
+        r.recommendations?.some((rec) => rec.suggest),
+      )
+    : restaurants;
 
   return (
     <>
@@ -71,22 +80,36 @@ const RestaurantPage = () => {
         </Typography>
 
         <Box display="flex" mt={4}>
-          {/* sidebar */}
           <SidebarFilters filters={filters} setFilters={setFilters} />
 
           <Box flex={1}>
-            {/* sort andearch */}
-            <Box display="flex" justifyContent="space-between" mb={2}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+              flexWrap="wrap"
+              gap={2}
+            >
               <SortByFilter
                 value={filters.sort_by}
                 onChange={(sort_by) => setFilters((f) => ({ ...f, sort_by }))}
               />
-              <Box
-                display="flex"
-                justifyContent="flex-end"
-                alignItems="flex-end"
-                mt={2}
-              >
+              <Box display="flex" alignItems="center" gap={2}>
+                <Button
+                  variant={showSuggestedOnly ? 'contained' : 'outlined'}
+                  onClick={() => setShowSuggestedOnly((prev) => !prev)}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 2,
+                    py: 1,
+                  }}
+                >
+                  {showSuggestedOnly
+                    ? 'Showing Suggested'
+                    : 'Show Partner Suggested Only'}
+                </Button>
                 <SearchButton onClick={handleSearch} loading={loading} />
               </Box>
             </Box>
@@ -96,12 +119,12 @@ const RestaurantPage = () => {
               hasSearched={searchTriggered}
               onRemoveFilter={(key, value) => {
                 setFilters((prev) => {
-                  if (Array.isArray(prev[key as keyof typeof prev])) {
+                  if (Array.isArray(prev[key as keyof Filters])) {
                     return {
                       ...prev,
-                      [key]: (
-                        prev[key as keyof typeof prev] as string[]
-                      ).filter((v) => v !== value),
+                      [key]: (prev[key as keyof Filters] as string[]).filter(
+                        (v) => v !== value,
+                      ),
                     };
                   }
 
@@ -124,12 +147,11 @@ const RestaurantPage = () => {
               }}
             />
 
-            {/* get restuarant calls for display */}
             {loading ? (
               <Typography align="center" mt={4}>
                 Loading...
               </Typography>
-            ) : restaurants.length === 0 ? (
+            ) : filteredRestaurants.length === 0 ? (
               <Typography align="center" mt={4}>
                 No restaurants found.
               </Typography>
@@ -147,7 +169,7 @@ const RestaurantPage = () => {
                   mt: 4,
                 }}
               >
-                {restaurants.map((restaurant) => (
+                {filteredRestaurants.map((restaurant) => (
                   <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))}
               </Box>

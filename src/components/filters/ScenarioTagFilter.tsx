@@ -8,9 +8,7 @@ type Props = {
   onChange: (value: string) => void;
 };
 
-/**
- * Filter for selecting a single scenario tag (occasion).
- */
+//  filter for selecting a scenario tag (occasion).
 const ScenarioTagFilter: React.FC<Props> = ({ value, onChange }) => {
   return (
     <Box>

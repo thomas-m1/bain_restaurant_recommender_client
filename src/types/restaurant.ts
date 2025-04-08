@@ -2,7 +2,7 @@ export type Recommendation = {
   id: string;
   business_id: string;
   user_email: string;
-  sentiment: 'suggest' | 'dislike';
+  suggest: 'suggest' | 'dislike';
   note?: string;
 };
 
@@ -31,6 +31,6 @@ export type Restaurant = {
   attire?: string;
   good_for_groups?: boolean;
   outdoor_seating?: boolean;
-  business_hours?: any[]; // refine later
+  business_hours?: any[];
   recommendations?: Recommendation[];
 };

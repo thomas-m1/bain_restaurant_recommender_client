@@ -10,3 +10,4 @@ export { default as GoodForGroupsFilter } from './filters/GoodForGroupsFilter';
 export { default as DistanceFilter } from './filters/DistanceFilter';
 export { default as LeaveRecommendationModal } from './LeaveRecommendationModal';
 export { default as SidebarFilters } from './SidebarFilters';
+export { default as GoodForMealFilter } from './filters/GoodForMealFilter';
