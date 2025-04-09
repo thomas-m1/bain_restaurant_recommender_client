@@ -11,7 +11,7 @@ export type SearchParams = Filters & {
 export const fetchRestaurants = async (
   params: SearchParams
 ): Promise<PaginatedResponse<Restaurant>> => {
-  const response = await api.get<PaginatedResponse<Restaurant>>('/v1/restaurants', {
+  const response = await api.get<PaginatedResponse<Restaurant>>('/v1/restaurants/', {
     params,
     paramsSerializer: (params) => {
       const query = new URLSearchParams();
