@@ -5,11 +5,14 @@ import {
   Typography,
   Container,
   Button,
+  Pagination,
+  Stack,
 } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchRestaurants } from '../services/restaurantService';
 import { Restaurant } from '../types/restaurant';
 import { Filters } from '../types/filters';
+import { PaginatedResponse } from '../types/pagination';
 import {
   RestaurantCard,
   SortByFilter,
@@ -29,14 +32,21 @@ const initialFilters: Filters = {
   good_for_meal: [],
 };
 
+const PAGE_SIZE = 9;
+
 const RestaurantPage = () => {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTriggered, setSearchTriggered] = useState(true);
   const [showSuggestedOnly, setShowSuggestedOnly] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+  const [page, setPage] = useState(1);
+
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const handleSearch = () => {
+    setPage(1); // reset to first page
     setSearchTriggered(true);
   };
 
@@ -46,8 +56,17 @@ const RestaurantPage = () => {
     const getData = async () => {
       setLoading(true);
       try {
-        const data = await fetchRestaurants(filters);
-        setRestaurants(data);
+        const data: PaginatedResponse<Restaurant> = await fetchRestaurants({
+          ...filters,
+          skip: (page - 1) * PAGE_SIZE,
+          limit: PAGE_SIZE,
+        });
+        setRestaurants(data.items);
+        setTotalResults(data.total);
+        // Scroll to top of results
+        if (resultsRef.current) {
+          resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
       } catch (err) {
         console.error('Error fetching restaurants:', err);
       } finally {
@@ -56,12 +75,10 @@ const RestaurantPage = () => {
     };
 
     getData();
-  }, [searchTriggered, filters]);
+  }, [searchTriggered, filters, page]);
 
   const filteredRestaurants = showSuggestedOnly
-    ? restaurants.filter((r) =>
-        r.recommendations?.some((rec) => rec.suggest),
-      )
+    ? restaurants.filter((r) => r.recommendations?.some((rec) => rec.suggest))
     : restaurants;
 
   return (
@@ -147,6 +164,8 @@ const RestaurantPage = () => {
               }}
             />
 
+            <Box ref={resultsRef} />
+
             {loading ? (
               <Typography align="center" mt={4}>
                 Loading...
@@ -156,23 +175,47 @@ const RestaurantPage = () => {
                 No restaurants found.
               </Typography>
             ) : (
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    sm: '1fr 1fr',
-                    md: '1fr 1fr',
-                    lg: '1fr 1fr 1fr',
-                  },
-                  gap: 3,
-                  mt: 4,
-                }}
-              >
-                {filteredRestaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                ))}
-              </Box>
+              <>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: '1fr 1fr',
+                      md: '1fr 1fr',
+                      lg: '1fr 1fr 1fr',
+                    },
+                    gap: 3,
+                    mt: 4,
+                  }}
+                >
+                  {filteredRestaurants.map((restaurant) => (
+                    <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                  ))}
+                </Box>
+
+                <Stack
+                  direction="column"
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={2}
+                  mt={5}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Page {page} of {Math.ceil(totalResults / PAGE_SIZE)}
+                  </Typography>
+                  <Pagination
+                    count={Math.ceil(totalResults / PAGE_SIZE)}
+                    page={page}
+                    onChange={(_, value) => setPage(value)}
+                    color="primary"
+                    size="large"
+                    showFirstButton
+                    showLastButton
+                  />
+                </Stack>
+                <Box mt={8} />
+              </>
             )}
           </Box>
         </Box>

@@ -6,6 +6,10 @@ type Props = {
     price?: string[];
     scenario_tag?: string;
     sort_by?: string;
+    good_for_meal?: string[];
+    outdoor_seating?: boolean;
+    good_for_groups?: boolean;
+    max_distance_km?: number;
   };
   onRemoveFilter: (key: string, value?: string) => void;
   hasSearched: boolean;
@@ -58,7 +62,36 @@ export default function SelectedFiltersSummary({
       key: 'sort_by',
     });
   }
+  if (filters.good_for_meal) {
+    for (const meal of filters.good_for_meal) {
+      chips.push({
+        label: `Good for: ${meal}`,
+        key: 'good_for_meal',
+        value: meal,
+      });
+    }
+  }
 
+  if (filters.outdoor_seating) {
+    chips.push({
+      label: 'Outdoor Seating',
+      key: 'outdoor_seating',
+    });
+  }
+
+  if (filters.good_for_groups) {
+    chips.push({
+      label: 'Good for Groups',
+      key: 'good_for_groups',
+    });
+  }
+
+  if (filters.max_distance_km !== undefined) {
+    chips.push({
+      label: `Within ${filters.max_distance_km} km`,
+      key: 'max_distance_km',
+    });
+  }
   return (
     <Box mt={3}>
       {chips.length > 0 && (

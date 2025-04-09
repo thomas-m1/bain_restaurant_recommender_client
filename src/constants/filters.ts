@@ -28,7 +28,6 @@ export const CATEGORY_OPTIONS  = [
   'Bars ',
   'Middle Eastern',
   'Bars',
-
 ];
 
 export const SCENARIO_TAGS = [
@@ -40,6 +39,7 @@ export const SCENARIO_TAGS = [
   'Michelin',
   'Large Group Dinner',
   'Cocktail Bar',
+  'Vegetarian',
 ];
 
 

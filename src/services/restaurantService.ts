@@ -1,58 +1,54 @@
 import api from './api';
 import { Restaurant } from '../types/restaurant';
+import { PaginatedResponse } from '../types/pagination';
+import { Filters } from '../types/filters';
 
-type SearchParams = {
-  price?: string[];
-  categories?: string[];
-  scenario_tag?: string;
-  sort_by?: 'best_match' | 'highest_rated' | 'popularity' | 'distance';
-  outdoor_seating?: boolean;
-  good_for_groups?: boolean;
-  max_distance_km?: number;
+export type SearchParams = Filters & {
   skip?: number;
   limit?: number;
 };
 
 export const fetchRestaurants = async (
   params: SearchParams
-): Promise<Restaurant[]> => {
-  const response = await api.get<Restaurant[]>('/v1/restaurants', {
+): Promise<PaginatedResponse<Restaurant>> => {
+  const response = await api.get<PaginatedResponse<Restaurant>>('/v1/restaurants', {
     params,
     paramsSerializer: (params) => {
       const query = new URLSearchParams();
 
-      if (params.categories)
-        params.categories.forEach((c: string) => query.append('categories', c));
+      // Handle array parameters
+      const arrayFields: (keyof SearchParams)[] = [
+        'categories',
+        'price',
+        'good_for_meal',
+      ];
 
-      if (params.price)
-        params.price.forEach((p: string) => query.append('price', p));
+      arrayFields.forEach((key) => {
+        const values = params[key];
+        if (Array.isArray(values)) {
+          values.forEach((val) => {
+            query.append(key, key === 'good_for_meal' ? val.toLowerCase() : val);
+          });
+        }
+      });
 
-      if (params.scenario_tag)
-        query.append('scenario_tag', params.scenario_tag);
+      // Handle single-value filters
+      const singleFields: (keyof SearchParams)[] = [
+        'scenario_tag',
+        'sort_by',
+        'outdoor_seating',
+        'good_for_groups',
+        'max_distance_km',
+        'skip',
+        'limit',
+      ];
 
-      if (params.sort_by)
-        query.append('sort_by', params.sort_by);
-
-      if (params.good_for_meal) {
-        params.good_for_meal.forEach((meal: string) =>
-          query.append('good_for_meal', meal.toLowerCase())
-        );
-      }
-
-      if (params.outdoor_seating !== undefined)
-        query.append('outdoor_seating', String(params.outdoor_seating));
-
-      if (params.good_for_groups !== undefined)
-        query.append('good_for_groups', String(params.good_for_groups));
-
-      if (params.max_distance_km !== undefined)
-        query.append('max_distance_km', params.max_distance_km.toString());
-
-      if (params.skip)
-        query.append('skip', params.skip.toString());
-
-      if (params.limit)
-        query.append('limit', params.limit.toString());
+      singleFields.forEach((key) => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+          query.append(key, String(value));
+        }
+      });
 
       return query.toString();
     },
