@@ -16,3 +16,7 @@ REACT_APP_API_BASE_URL=http://localhost:8000/api<br>
 ### 4. Run the App Locally
 npm start<br>
 http://localhost:3000<br>
+
+
+
+Notes: some features don't offer free api. uploaded that version in separate branch

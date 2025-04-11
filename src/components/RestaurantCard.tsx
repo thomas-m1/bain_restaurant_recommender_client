@@ -19,6 +19,8 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LeaveRecommendationModal from './LeaveRecommendationModal';
 import BusinessHours from './BusinessHours';
+import { makeReservation } from '../services/restaurantService';
+import GoogleMapsEmbedModal from './GoogleMapsEmbedModal'; // Add this
 
 interface Props {
   restaurant: Restaurant;
@@ -27,6 +29,7 @@ interface Props {
 export default function RestaurantCard({ restaurant }: Props) {
   const [open, setOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showDirections, setShowDirections] = useState(false);
 
   const suggestCount =
     restaurant.recommendations?.filter((r) => r.suggest).length || 0;
@@ -77,7 +80,20 @@ export default function RestaurantCard({ restaurant }: Props) {
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" ml={3}>
-              {restaurant.distance_from_office_km.toFixed(1)} km from office
+              {restaurant.distance_from_office_km.toFixed(1)} km from office -
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{
+                  ml: 1,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  display: 'inline-block',
+                }}
+                onClick={() => setShowDirections(true)}
+              >
+                See Directions
+              </Typography>
             </Typography>
           </Box>
 
@@ -206,6 +222,26 @@ export default function RestaurantCard({ restaurant }: Props) {
             )}
           </Stack>
 
+          {/* reservation button to be implemented if api access*/}
+          <Box mt={2}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={async () => {
+              try {
+                const res = await makeReservation(restaurant.id);
+                alert(res.message);
+              } catch (err) {
+                console.error('Reservation failed', err);
+                alert('Reservation failed. Please try again.');
+              }
+            }}
+          >
+            Reserve Table
+          </Button>
+          </Box>
+
+
           {/* feedback for the restaurant by users*/}
           {restaurant.recommendations && (
             <Box
@@ -271,6 +307,13 @@ export default function RestaurantCard({ restaurant }: Props) {
         onClose={() => setOpen(false)}
         businessId={restaurant.id}
       />
+
+<GoogleMapsEmbedModal
+  open={showDirections}
+  onClose={() => setShowDirections(false)}
+  destLat={restaurant.latitude}
+  destLng={restaurant.longitude}
+/>
     </>
   );
 }
