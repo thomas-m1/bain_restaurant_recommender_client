@@ -5,7 +5,7 @@ Client for Bain Restaurant recommender MVP<br>
 git clone "repositoryurl"<br>
 cd bain-restaurant-frontend<br>
 
-###2. Install Dependencies
+### 2. Install Dependencies
 npm install
 
 
