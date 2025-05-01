@@ -7,7 +7,7 @@ if (!baseURL) {
 }
 
 const api = axios.create({
-  baseURL: 'https://restaurantrecommenderserver-production.up.railway.app/api',
+  baseURL: baseURL,
 });
 
 export default api;

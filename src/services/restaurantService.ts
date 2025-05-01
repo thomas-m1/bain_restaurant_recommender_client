@@ -9,50 +9,65 @@ export type SearchParams = Filters & {
 };
 
 export const fetchRestaurants = async (
-  params: SearchParams
+  params: SearchParams,
 ): Promise<PaginatedResponse<Restaurant>> => {
-  const response = await api.get<PaginatedResponse<Restaurant>>('/v1/restaurants/', {
-    params,
-    paramsSerializer: (params) => {
-      const query = new URLSearchParams();
+  const response = await api.get<PaginatedResponse<Restaurant>>(
+    '/v1/restaurants/',
+    {
+      params,
+      paramsSerializer: (params) => {
+        const query = new URLSearchParams();
 
-      // Handle array parameters
-      const arrayFields: (keyof SearchParams)[] = [
-        'categories',
-        'price',
-        'good_for_meal',
-      ];
+        // Handle array parameters
+        const arrayFields: (keyof SearchParams)[] = [
+          'categories',
+          'price',
+          'good_for_meal',
+        ];
 
-      arrayFields.forEach((key) => {
-        const values = params[key];
-        if (Array.isArray(values)) {
-          values.forEach((val) => {
-            query.append(key, key === 'good_for_meal' ? val.toLowerCase() : val);
-          });
-        }
-      });
+        arrayFields.forEach((key) => {
+          const values = params[key];
+          if (Array.isArray(values)) {
+            values.forEach((val) => {
+              query.append(
+                key,
+                key === 'good_for_meal' ? val.toLowerCase() : val,
+              );
+            });
+          }
+        });
 
-      // Handle single-value filters
-      const singleFields: (keyof SearchParams)[] = [
-        'scenario_tag',
-        'sort_by',
-        'outdoor_seating',
-        'good_for_groups',
-        'max_distance_km',
-        'skip',
-        'limit',
-      ];
+        // singl values
+        const singleFields: (keyof SearchParams)[] = [
+          'scenario_tag',
+          'sort_by',
+          'outdoor_seating',
+          'good_for_groups',
+          'max_distance_km',
+          'skip',
+          'limit',
+        ];
 
-      singleFields.forEach((key) => {
-        const value = params[key];
-        if (value !== undefined && value !== null) {
-          query.append(key, String(value));
-        }
-      });
+        singleFields.forEach((key) => {
+          const value = params[key];
+          if (value !== undefined && value !== null) {
+            query.append(key, String(value));
+          }
+        });
 
-      return query.toString();
+        return query.toString();
+      },
     },
-  });
+  );
 
+  return response.data;
+};
+
+// this is a dummy function to simulate a reservation. opentable does not have
+//  free api and yelps barely exists, so I decided to exclude
+// add it to seperate branch
+//add this to a seperate service and handle logic
+export const makeReservation = async (businessId: string) => {
+  const response = await api.post(`/v1/restaurants/${businessId}/reserve`);
   return response.data;
 };
